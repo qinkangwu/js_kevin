@@ -89,16 +89,56 @@ $$.extend($$,{
     $id : function(id){
         return document.getElementById(id);
     },
+    //根据标签名获取DOM
+    $tag : function(tag,id){
+        var dom = $$.getDOM(id);
+        if(dom){
+            return dom.getElementsByTagName(tag);
+        }else{
+            return document.getElementsByTagName(tag);
+        }
+    },
     //根据class获取DOM
-    $tag : function(tag){
-        return document.getElementsByTagName(tag);
+    $class : function(clsName,id){
+        if(document.getElementsByClassName){
+            return document.getElementsByClassName(clsName);
+        }else{
+            var elements = [];
+            var doms;
+            if(id){
+                //如果传入ID 缩小范围
+                var dom = $$.getDOM(id);
+                //获取容器所有元素
+                doms = dom.getElementsByTagName('*');
+            }else{
+                //获取文档所有元素
+                doms = document.getElementsByTagName('*');
+            }
+            //遍历元素数组，定位到该class的DOM  保存起来返回
+            for(var i = 0 ; i < doms.length ; i++){
+                if(doms[i].className == clsName){
+                    elements.push(doms[i]);
+                }
+            }
+            return elements;
+        }
+    },
+    getDOM : function(id){
+        var dom ;
+        //如果传入的不是一个字符串
+        if($$.isString(id)){
+            dom = document.getElementById(id);
+        }else{
+            dom = id;
+        }
+        return dom;
     }
 });
 
 //事件处理
 $$.extend($$,{
-    on : function(elem,type,fn){
-        var dom = this.$id(elem);
+    on : function(id,type,fn){
+        var dom = $$.getDOM(id);
         if(dom.addEventListener){
             dom.addEventListener(type,fn,false);
         }else{
@@ -106,6 +146,63 @@ $$.extend($$,{
             dom.attachEvent('on'+type,fn);
         }
 
+    },
+    //接触绑定事件
+    un : function(id,type,fn){
+        var dom = $$.getDOM(id);
+        if(dom.removeEventListener){
+            dom.removeEventListener(type,fn);
+        }else if(dom.detachEvent){
+            dom.detachEvent(type,fn);
+        }
+    },
+    //点击事件
+    click : function(id,fn){
+        $$.on(id,'click',fn);
+    },
+    //鼠标移入
+    mouseover : function(id,fn){
+        $$.on(id,'mouseover',fn);
+    },
+    //鼠标移除
+    mouseout : function(id,fn){
+        $$.on(id,'mouseout',fn);
+    },
+    //jq hover事件
+    hover : function(id,fn1,fn2){
+        if(fn1){
+            $$.on(id,'mouseover',fn1);
+        }
+        if(fn2){
+            $$.on(id,'mouseout',fn2);
+        }
+    },
+    //获取Event对象
+    getEvent : function(evt){
+        //兼容IE
+        return evt?evt:window.event;
+    },
+    //获取事件目标
+    getTarget : function(evt){
+        var e = $$.getEvent(evt);
+        return e.target || e.srcElement;
+    },
+    preventDefault : function(evt){
+        var e = $$.getEvent(evt);
+        if(e.preventDefault){
+            e.preventDefault()
+        }else if(e.returnValue){
+            e.returnValue = false;
+        }
+    },
+    //阻止冒泡行为
+    stopPropagation : function(evt){
+        var e = $$.getEvent(evt);
+        if(e.stopPropagation){
+            e.stopPropagation();
+        }else{
+            e.cancelBubble = true;
+        }
     }
 });
 
