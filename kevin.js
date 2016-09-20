@@ -123,6 +123,102 @@ $$.extend($$,{
             return elements;
         }
     },
+    $group : function(str){
+        //把传入的在选择器分隔，逐个击破
+        var arr = str.split(',');
+        var result = [];
+        for(var i = 0 ; i < arr.length ; i++){
+            var item = arr[i];
+            //获取选择器第一个字符
+            var first = item.charAt(0);
+            //获取字符的位置
+            var index = item.indexOf(first);
+            //截取第一个字符返回
+            var name = item.slice(index+1);
+            //判断第一个字符是什么
+            if(first == '#'){
+                //ID选择器
+                result.push($$.$id(name));
+
+            }else if(first == '.'){
+                //类选择器 有可能是一个数组
+                var list = $$.$class(name);
+                //利用apply向数组借用push方法 用数组push数组
+                Array.prototype.push.apply(result,list);
+            }else{
+                //节点选择器
+                var list2 = $$.$tag(item);
+                Array.prototype.push.apply(result,list2);
+            }
+        }
+        return result;
+    },
+    $layer : function (select){
+        //个个击破法则 -- 寻找击破点
+        var sel = $$.trim(select).split(' ');
+        var result=[];
+        var context=[];
+        for(var i = 0, len = sel.length; i < len; i++){
+            result=[];
+            var item = $$.trim(sel[i]);
+            var first = sel[i].charAt(0)
+            var index = item.indexOf(first)
+            var name = item.slice(index+1)
+            if(first ==='#'){
+                //如果是#，找到该元素，
+                pushArray([$$.$id(name)]);
+                context = result;
+            }else if(first ==='.'){
+                //如果是.
+                //如果是.
+                //找到context中所有的class为【s-1】的元素 --context是个集合
+                if(context.length){
+                    for(var j = 0, contextLen = context.length; j < contextLen; j++){
+                        pushArray($$.$class(name, context[j]));
+                    }
+                }else{
+                    pushArray($$.$class(name));
+                }
+                context = result;
+            }else{
+                //如果是标签
+                //遍历父亲，找到父亲中的元素==父亲都存在context中
+                if(context.length){
+                    for(var j = 0, contextLen = context.length; j < contextLen; j++){
+                        pushArray($$.$tag(item, context[j]));
+                    }
+                }else{
+                    pushArray($$.$tag(item));
+                }
+                context = result;
+            }
+        }
+
+        return context;
+
+        //封装重复的代码
+        function pushArray(doms){
+            for(var j= 0, domlen = doms.length; j < domlen; j++){
+                result.push(doms[j])
+            }
+        }
+    },
+    $groupLayer : function(str){
+        //分割选择器
+        var arr = str.split(',');
+        var result = [];
+        //依次调用层次选择器
+        for(var i = 0 ; i < arr.length ; i++){
+            var doms = $$.$layer(arr[i]);
+            Array.prototype.push.apply(result,doms);
+        }
+        return result;
+    },
+    //H5选择器，内置多组，分层
+    $all : function(str,scope){
+        var context = scope || document;
+        return context.querySelectorAll(str);
+    },
     getDOM : function(id){
         var dom ;
         //如果传入的不是一个字符串
