@@ -409,7 +409,6 @@ $$.extend($$,{
 //动画框架
 $$.extend($$,{
     animate : function(id,json,duration){
-    //案例: 将一个物体在5秒内从0px移动到400px
     var now = +new Date();//初始化计算now时间
     var tween;//默认动画没有走 进度是0
     var timer;
@@ -417,7 +416,6 @@ $$.extend($$,{
     timer = setInterval(move,16);
     //变速运动下计算动画时间进程
     function getTweenNew(now,pass,all,ease){
-        //赛贝尔曲线
         var eases = {
             //线性匀速
             linear:function (t, b, c, d){
@@ -556,14 +554,51 @@ $$.extend($$,{
         var yongshi = pass -now;
         return eases[ease](yongshi,0,1,all)
     }
+    /* var styles=[
+     {name:'top',start:0,juli:200},
+     {name:'height',start:0,juli:200},
+     {name:'width',start:0,juli:300}
+     ]*/
 
+    var styles = adapter(json)
+    /*需要定义一个函数来专门做这个转换工作*/
+    function adapter(source){
+        var styles=[]
+        for(var item in source){
+            /*思路*/
+            /*   name :item
+             start:parseFloat($$.css(id,item))
+             juli:最终的位置 -- 起始位置  source[item] - start*/
+            var style={};
+            style.name = item;
+            style.start = parseFloat($$.css(id,item))
+            style.juli = parseFloat(source[item]) - style.start
+            styles.push(style)
+
+        }
+        return styles;
+    }
     /*停止*/
     function stop(){
         clearInterval(timer);
     }
     //设置一个样式
+    /*未来一旦代码变化 只需要更改一个地方*/
     function setOneProperty(id,name,start,juli,tween){
-        $$.css(id,name,(start + juli*tween)+'px')
+        /*透明度 不需要px
+         但是width top height left right px*/
+        if(name == 'opacity'){
+            $$.css(id,name,start + juli*tween)
+        }else{
+            $$.css(id,name,(start + juli*tween)+'px')
+        }
+    }
+    /*10--30%  - - 不 断变化 */
+    function setManyProperty(id,styles,tween){
+        for(var i =0;i<styles.length;i++){
+            var item = styles[i];
+            setOneProperty(id,item.name,item.start,item.juli,tween)
+        }
     }
     //  每次循环执行的代码
     function move() {
@@ -574,9 +609,9 @@ $$.extend($$,{
         }else {
             var pass = +new Date();
             /*计算动画时间进程*/
-            tween = getTweenNew(now,pass,duration,'easeInQuad')
+            tween = getTweenNew(now,pass,duration,'easeOutBounce')
             /*动起来*/
-            setOneProperty(id,'left',0,juli,tween)
+            setManyProperty(id,styles,tween)
         }
     }
 }
