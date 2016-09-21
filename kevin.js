@@ -170,7 +170,6 @@ $$.extend($$,{
                 context = result;
             }else if(first ==='.'){
                 //如果是.
-                //如果是.
                 //找到context中所有的class为【s-1】的元素 --context是个集合
                 if(context.length){
                     for(var j = 0, contextLen = context.length; j < contextLen; j++){
@@ -357,11 +356,31 @@ $$.extend($$,{
         }
     },
     //添加类名
-    addClass : function(){
-
+    addClass : function(context,str){
+        var doms = $$.$all(context);
+        for(var i = 0 ; i< doms.length ; i++){
+            doms[i].className += ' ' + str;
+        }
     },
     //删除类名
-    removeClass : function(){
+    removeClass : function(context,str){
+        var doms = $$.$all(context);
+        for(var i = 0 ; i< doms.length ; i++){
+            doms[i].className = doms[i].className.replace(str,'');
+        }
+    },
+    html : function(context,str){
+        var doms = $$.$all(context);
+        if(arguments.length == 1){
+            //获取文本内容
+            return doms[0].innerHTML;
+        }
+        if(arguments.length == 2){
+            //设置文本内容
+            for(var i = 0 ; i < doms.length ; i++){
+                doms[i].innerHTML = str;
+            }
+        }
 
     },
     //隐藏
