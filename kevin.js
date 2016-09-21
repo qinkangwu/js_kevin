@@ -305,24 +305,37 @@ $$.extend($$,{
 $$.extend($$,{
     //CSS操作
    css : function(context,key,value){
-       var doms = $$.$all(context);
-       //判断传入的参数，如果是两个就代表是获取属性
-        if(arguments.length == 2){
-            //获取属性
-            if(doms[0].currentStyle){
-                //兼容低版本IE
-                return doms[0].currentStyle(key);
-            }else{
-                return window.getComputedStyle(doms[0],null)[key];
-            }
-        }else if(arguments.length == 3){
-            //设置值
-            for(var i = 0 ; i < doms.length ; i++){
-                doms[i].style[key] = value;
-            }
-        }else{
-            throw Error('函数参数错误')
-        }
+       var dom = $$.isString(context)?$$.$all(context) : context;
+       //如果是数组
+       if(dom.length){
+           //先骨架骨架 -- 如果是获取模式 -- 如果是设置模式
+           //如果value不为空，则表示设置
+           if(value){
+               for(var i = dom.length - 1; i >= 0; i--){
+                   setStyle(dom[i],key, value);
+               }
+               //            如果value为空，则表示获取
+           }else{
+               return getStyle(dom[0]);
+           }
+           //如果不是数组
+       }else{
+           if(value){
+               setStyle(dom,key, value);
+           }else{
+               return getStyle(dom);
+           }
+       }
+       function getStyle(dom){
+           if(dom.currentStyle){
+               return dom.currentStyle[key];
+           }else{
+               return getComputedStyle(dom,null)[key];
+           }
+       }
+       function setStyle(dom,key,value){
+           dom.style[key] = value;
+       }
    },
     //属性操作
     attr : function(context,key,value){
@@ -390,6 +403,44 @@ $$.extend($$,{
     //显示
     show : function(context){
         $$.css(context,'display','block')
+    }
+});
+
+//动画框架
+$$.extend($$,{
+    animate : function(id,distance,duration){
+        //将一个物体从x距离移动到y距离 花s秒
+        var now = +new Date(); //计算时间差
+        var tween = 0; //初始化动画时间进程
+        var timer;
+        timer = setInterval(move,1);
+        //封装动画时间进程
+        function getTween(now,pass,all){
+            var tween;
+            pass = +new Date();
+            tween = (pass-now)/all;
+            return tween;
+        }
+        //设置样式
+        function setOneProperty(id,name,start,distance,tween){
+            $$.css(id,name,(start+distance*tween)+'px');
+        }
+        //停止动画
+        function stop(){
+            clearInterval(timer);
+        }
+        //动画开始
+        function move(){
+            if(tween>=1){
+                stop();
+            }else{
+                pass = +new Date();
+                tween = getTween(now,pass,duration);
+                setOneProperty(id,'left',0,distance,tween);
+            }
+        }
+
+
     }
 });
 
