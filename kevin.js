@@ -304,39 +304,39 @@ $$.extend($$,{
 //css 内容 相关操作
 $$.extend($$,{
     //CSS操作
-   css : function(context,key,value){
-       var dom = $$.isString(context)?$$.$all(context) : context;
-       //如果是数组
-       if(dom.length){
-           //先骨架骨架 -- 如果是获取模式 -- 如果是设置模式
-           //如果value不为空，则表示设置
-           if(value){
-               for(var i = dom.length - 1; i >= 0; i--){
-                   setStyle(dom[i],key, value);
-               }
-               //            如果value为空，则表示获取
-           }else{
-               return getStyle(dom[0]);
-           }
-           //如果不是数组
-       }else{
-           if(value){
-               setStyle(dom,key, value);
-           }else{
-               return getStyle(dom);
-           }
-       }
-       function getStyle(dom){
-           if(dom.currentStyle){
-               return dom.currentStyle[key];
-           }else{
-               return getComputedStyle(dom,null)[key];
-           }
-       }
-       function setStyle(dom,key,value){
-           dom.style[key] = value;
-       }
-   },
+    css : function(context,key,value){
+        var dom = $$.isString(context)?$$.$all(context) : context;
+        //如果是数组
+        if(dom.length){
+            //先骨架骨架 -- 如果是获取模式 -- 如果是设置模式
+            //如果value不为空，则表示设置
+            if(value){
+                for(var i = dom.length - 1; i >= 0; i--){
+                    setStyle(dom[i],key, value);
+                }
+                //            如果value为空，则表示获取
+            }else{
+                return getStyle(dom[0]);
+            }
+            //如果不是数组
+        }else{
+            if(value){
+                setStyle(dom,key, value);
+            }else{
+                return getStyle(dom);
+            }
+        }
+        function getStyle(dom){
+            if(dom.currentStyle){
+                return dom.currentStyle[key];
+            }else{
+                return getComputedStyle(dom,null)[key];
+            }
+        }
+        function setStyle(dom,key,value){
+            dom.style[key] = value;
+        }
+    },
     //属性操作
     attr : function(context,key,value){
         var doms = $$.$all(context);
@@ -408,39 +408,177 @@ $$.extend($$,{
 
 //动画框架
 $$.extend($$,{
-    animate : function(id,distance,duration){
-        //将一个物体从x距离移动到y距离 花s秒
-        var now = +new Date(); //计算时间差
-        var tween = 0; //初始化动画时间进程
-        var timer;
-        timer = setInterval(move,1);
-        //封装动画时间进程
-        function getTween(now,pass,all){
-            var tween;
-            pass = +new Date();
-            tween = (pass-now)/all;
-            return tween;
-        }
-        //设置样式
-        function setOneProperty(id,name,start,distance,tween){
-            $$.css(id,name,(start+distance*tween)+'px');
-        }
-        //停止动画
-        function stop(){
-            clearInterval(timer);
-        }
-        //动画开始
-        function move(){
-            if(tween>=1){
-                stop();
-            }else{
-                pass = +new Date();
-                tween = getTween(now,pass,duration);
-                setOneProperty(id,'left',0,distance,tween);
+    animate : function(id,json,duration){
+    //案例: 将一个物体在5秒内从0px移动到400px
+    var now = +new Date();//初始化计算now时间
+    var tween;//默认动画没有走 进度是0
+    var timer;
+    //绑定事件
+    timer = setInterval(move,16);
+    //变速运动下计算动画时间进程
+    function getTweenNew(now,pass,all,ease){
+        //赛贝尔曲线
+        var eases = {
+            //线性匀速
+            linear:function (t, b, c, d){
+                return (c - b) * (t/ d);
+            },
+            //弹性运动
+            easeOutBounce:function (t, b, c, d) {
+                if ((t/=d) < (1/2.75)) {
+                    return c*(7.5625*t*t) + b;
+                } else if (t < (2/2.75)) {
+                    return c*(7.5625*(t-=(1.5/2.75))*t + .75) + b;
+                } else if (t < (2.5/2.75)) {
+                    return c*(7.5625*(t-=(2.25/2.75))*t + .9375) + b;
+                } else {
+                    return c*(7.5625*(t-=(2.625/2.75))*t + .984375) + b;
+                }
+            },
+            //其他
+            swing: function (t, b, c, d) {
+                return this.easeOutQuad(t, b, c, d);
+            },
+            easeInQuad: function (t, b, c, d) {
+                return c*(t/=d)*t + b;
+            },
+            easeOutQuad: function (t, b, c, d) {
+                return -c *(t/=d)*(t-2) + b;
+            },
+            easeInOutQuad: function (t, b, c, d) {
+                if ((t/=d/2) < 1) return c/2*t*t + b;
+                return -c/2 * ((--t)*(t-2) - 1) + b;
+            },
+            easeInCubic: function (t, b, c, d) {
+                return c*(t/=d)*t*t + b;
+            },
+            easeOutCubic: function (t, b, c, d) {
+                return c*((t=t/d-1)*t*t + 1) + b;
+            },
+            easeInOutCubic: function (t, b, c, d) {
+                if ((t/=d/2) < 1) return c/2*t*t*t + b;
+                return c/2*((t-=2)*t*t + 2) + b;
+            },
+            easeInQuart: function (t, b, c, d) {
+                return c*(t/=d)*t*t*t + b;
+            },
+            easeOutQuart: function (t, b, c, d) {
+                return -c * ((t=t/d-1)*t*t*t - 1) + b;
+            },
+            easeInOutQuart: function (t, b, c, d) {
+                if ((t/=d/2) < 1) return c/2*t*t*t*t + b;
+                return -c/2 * ((t-=2)*t*t*t - 2) + b;
+            },
+            easeInQuint: function (t, b, c, d) {
+                return c*(t/=d)*t*t*t*t + b;
+            },
+            easeOutQuint: function (t, b, c, d) {
+                return c*((t=t/d-1)*t*t*t*t + 1) + b;
+            },
+            easeInOutQuint: function (t, b, c, d) {
+                if ((t/=d/2) < 1) return c/2*t*t*t*t*t + b;
+                return c/2*((t-=2)*t*t*t*t + 2) + b;
+            },
+            easeInSine: function (t, b, c, d) {
+                return -c * Math.cos(t/d * (Math.PI/2)) + c + b;
+            },
+            easeOutSine: function (t, b, c, d) {
+                return c * Math.sin(t/d * (Math.PI/2)) + b;
+            },
+            easeInOutSine: function (t, b, c, d) {
+                return -c/2 * (Math.cos(Math.PI*t/d) - 1) + b;
+            },
+            easeInExpo: function (t, b, c, d) {
+                return (t==0) ? b : c * Math.pow(2, 10 * (t/d - 1)) + b;
+            },
+            easeOutExpo: function (t, b, c, d) {
+                return (t==d) ? b+c : c * (-Math.pow(2, -10 * t/d) + 1) + b;
+            },
+            easeInOutExpo: function (t, b, c, d) {
+                if (t==0) return b;
+                if (t==d) return b+c;
+                if ((t/=d/2) < 1) return c/2 * Math.pow(2, 10 * (t - 1)) + b;
+                return c/2 * (-Math.pow(2, -10 * --t) + 2) + b;
+            },
+            easeInCirc: function (t, b, c, d) {
+                return -c * (Math.sqrt(1 - (t/=d)*t) - 1) + b;
+            },
+            easeOutCirc: function (t, b, c, d) {
+                return c * Math.sqrt(1 - (t=t/d-1)*t) + b;
+            },
+            easeInOutCirc: function (t, b, c, d) {
+                if ((t/=d/2) < 1) return -c/2 * (Math.sqrt(1 - t*t) - 1) + b;
+                return c/2 * (Math.sqrt(1 - (t-=2)*t) + 1) + b;
+            },
+            easeInElastic: function (t, b, c, d) {
+                var s=1.70158;var p=0;var a=c;
+                if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*.3;
+                if (a < Math.abs(c)) { a=c; var s=p/4; }
+                else var s = p/(2*Math.PI) * Math.asin (c/a);
+                return -(a*Math.pow(2,10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )) + b;
+            },
+            easeOutElastic: function (t, b, c, d) {
+                var s=1.70158;var p=0;var a=c;
+                if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*.3;
+                if (a < Math.abs(c)) { a=c; var s=p/4; }
+                else var s = p/(2*Math.PI) * Math.asin (c/a);
+                return a*Math.pow(2,-10*t) * Math.sin( (t*d-s)*(2*Math.PI)/p ) + c + b;
+            },
+            easeInOutElastic: function (t, b, c, d) {
+                var s=1.70158;var p=0;var a=c;
+                if (t==0) return b;  if ((t/=d/2)==2) return b+c;  if (!p) p=d*(.3*1.5);
+                if (a < Math.abs(c)) { a=c; var s=p/4; }
+                else var s = p/(2*Math.PI) * Math.asin (c/a);
+                if (t < 1) return -.5*(a*Math.pow(2,10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )) + b;
+                return a*Math.pow(2,-10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )*.5 + c + b;
+            },
+            easeInBack: function (t, b, c, d, s) {
+                if (s == undefined) s = 1.70158;
+                return c*(t/=d)*t*((s+1)*t - s) + b;
+            },
+            easeOutBack: function (t, b, c, d, s) {
+                if (s == undefined) s = 1.70158;
+                return c*((t=t/d-1)*t*((s+1)*t + s) + 1) + b;
+            },
+            easeInOutBack: function (t, b, c, d, s) {
+                if (s == undefined) s = 1.70158;
+                if ((t/=d/2) < 1) return c/2*(t*t*(((s*=(1.525))+1)*t - s)) + b;
+                return c/2*((t-=2)*t*(((s*=(1.525))+1)*t + s) + 2) + b;
+            },
+            easeInBounce: function (t, b, c, d) {
+                return c - this.easeOutBounce (d-t, 0, c, d) + b;
+            },
+            easeInOutBounce: function (t, b, c, d) {
+                if (t < d/2) return this.easeInBounce (t*2, 0, c, d) * .5 + b;
+                return this.easeOutBounce (t*2-d, 0, c, d) * .5 + c*.5 + b;
             }
         }
-
-
+        var yongshi = pass -now;
+        return eases[ease](yongshi,0,1,all)
     }
+
+    /*停止*/
+    function stop(){
+        clearInterval(timer);
+    }
+    //设置一个样式
+    function setOneProperty(id,name,start,juli,tween){
+        $$.css(id,name,(start + juli*tween)+'px')
+    }
+    //  每次循环执行的代码
+    function move() {
+        //动画停止的条件
+        if(tween>=1) {
+            /*停止动画*/
+            stop()
+        }else {
+            var pass = +new Date();
+            /*计算动画时间进程*/
+            tween = getTweenNew(now,pass,duration,'easeInQuad')
+            /*动起来*/
+            setOneProperty(id,'left',0,juli,tween)
+        }
+    }
+}
 });
 
