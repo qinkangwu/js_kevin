@@ -161,9 +161,9 @@ $$.extend($$,{
         for(var i = 0, len = sel.length; i < len; i++){
             result=[];
             var item = $$.trim(sel[i]);
-            var first = sel[i].charAt(0)
-            var index = item.indexOf(first)
-            var name = item.slice(index+1)
+            var first = sel[i].charAt(0);
+            var index = item.indexOf(first);
+            var name = item.slice(index+1);
             if(first ==='#'){
                 //如果是#，找到该元素，
                 pushArray([$$.$id(name)]);
@@ -299,6 +299,78 @@ $$.extend($$,{
         }else{
             e.cancelBubble = true;
         }
+    }
+});
+
+//css 内容 相关操作
+$$.extend($$,{
+    //CSS操作
+   css : function(context,key,value){
+       var doms = $$.$all(context);
+       //判断传入的参数，如果是两个就代表是获取属性
+        if(arguments.length == 2){
+            //获取属性
+            if(doms[0].currentStyle){
+                //兼容低版本IE
+                return doms[0].currentStyle(key);
+            }else{
+                return window.getComputedStyle(doms[0],null)[key];
+            }
+        }else if(arguments.length == 3){
+            //设置值
+            for(var i = 0 ; i < doms.length ; i++){
+                doms[i].style[key] = value;
+            }
+        }else{
+            throw Error('函数参数错误')
+        }
+   },
+    //属性操作
+    attr : function(context,key,value){
+        var doms = $$.$all(context);
+        //判断传入的参数，如果是两个就代表是获取属性
+        if(arguments.length == 2){
+            //获取属性
+            return doms[0].getAttribute(key);
+        }else if(arguments.length == 3){
+            //设置值
+            for(var i = 0 ; i < doms.length ; i++){
+                doms[i].setAttribute(key,value);
+            }
+        }else{
+            throw Error('函数参数错误')
+        }
+    },
+    //去除属性
+    removeAttr : function(){
+        //将伪数组转换成真数组
+        var list = Array.prototype.slice.call(arguments);
+        //获取作用域
+        var context = list[0];
+        //获取节点
+        var doms = $$.$all(context);
+        var names = list[1].slice(1);
+        for(var i = 0 ; i < doms.length ; i++){
+            for(var j = 0 ; j<list.length ; j++){
+                doms[i].removeAttribute(list[j]);
+            }
+        }
+    },
+    //添加类名
+    addClass : function(){
+
+    },
+    //删除类名
+    removeClass : function(){
+
+    },
+    //隐藏
+    hide : function(context){
+        $$.css(context,'display','none');
+    },
+    //显示
+    show : function(context){
+        $$.css(context,'display','block')
     }
 });
 
