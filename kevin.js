@@ -633,6 +633,7 @@ Animate.prototype = {
         return styles;
     }
 };
+//实例化动画组件
 $$.animate = function(id,json,duration){
     var animate = new Animate();
     animate.add(id,json,duration);
