@@ -625,7 +625,12 @@
         animate.add(id,json,duration);
     };
 
-    w.$$ = $$;
-})(window)
+    //模拟jq
+    function $(context){
+        return $$.$all(context);
+    }
+
+    w.$ = $;
+})(window);
 
 
