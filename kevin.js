@@ -2,7 +2,7 @@
  *  常用功能框架封装 by Kevin
  */
 
-(function(w){
+(function(w){"use strict";
     var Kevin = function(){};
 
     Kevin.prototype = {
@@ -429,10 +429,9 @@
             clearInterval(that.timer);
         },
         //设置一个样式
-        /*未来一旦代码变化 只需要更改一个地方*/
+        //未来一旦代码变化 只需要更改一个地方
         setOneProperty : function(id,name,start,juli,tween){
-            /*透明度 不需要px
-             但是width top height left right px*/
+            //透明度 不需要px但是width top height left right px
             if(name == 'opacity'){
                 $$.css(id,name,start + juli*tween)
             }else{
